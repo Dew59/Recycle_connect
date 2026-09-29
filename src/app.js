@@ -1,14 +1,13 @@
 import express from 'express';
 import AppError from './utils/AppError.js';
 import errorMiddleware from './middlewares/errorMiddleware.js';
+import authRoutes from './routes/authRoute.js';
 
 const app = express();
 
 app.use(express.json());
 
-app.get('/', (req, res) => {
-    res.send('Hello World!');
-});
+app.use('/api/auth', authRoutes);
 
 // Handle unknown routes
 app.use((req, res, next) => {
