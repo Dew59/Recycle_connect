@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
 const TRANSACTION_STATUSES = ['PENDING', 'CONFIRMED', 'DISPUTED', 'REVERSED'];
@@ -124,5 +124,4 @@ const incentiveTransactionSchema = new Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model('IncentiveTransaction', incentiveTransactionSchema);
-module.exports.TRANSACTION_STATUSES = TRANSACTION_STATUSES;
+export default mongoose.model('IncentiveTransaction', incentiveTransactionSchema);
