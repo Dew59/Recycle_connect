@@ -1,5 +1,5 @@
 
-import { registerHouseholdService, registerCollectorService, registerRecyclerService, registerAdminService, loginHouseholdService, loginCollectorService, loginRecyclerService, loginAdminService } from '../services/authService.js';
+import { registerHouseholdService, registerCollectorService, registerAdminService, loginHouseholdService, loginCollectorService, loginAdminService } from '../services/authService.js';
 import asyncHandler from '../utils/asyncHandler.js';
 
 export const registerHousehold = asyncHandler(async (req, res) => {
@@ -43,31 +43,6 @@ export const registerCollector = asyncHandler(async (req, res) => {
             isActive: collector.isActive,
             createdAt: collector.createdAt,
             updatedAt: collector.updatedAt
-        }
-    });
-});
-
-export const registerRecycler = asyncHandler(async (req, res) => {
-    const recycler = await registerRecyclerService(req.validatedData.body);
-
-    res.status(201).json({
-        success: true,
-        message: 'Recycler registration submitted successfully',
-        data: {
-            id: recycler._id,
-            fullName: recycler.fullName,
-            email: recycler.email,
-            phone: recycler.phone,
-            profilePhoto: recycler.profilePhoto,
-            businessName: recycler.businessName,
-            businessAddress: recycler.businessAddress,
-            recyclerType: recycler.recyclerType,
-            identificationDocument: recycler.identificationDocument,
-            pickupZone: recycler.pickupZone,
-            approvalStatus: recycler.approvalStatus,
-            isActive: recycler.isActive,
-            createdAt: recycler.createdAt,
-            updatedAt: recycler.updatedAt
         }
     });
 });
@@ -133,34 +108,6 @@ export const loginCollector = asyncHandler(async (req, res) => {
                 address: collector.address,
                 approvalStatus: collector.approvalStatus,
                 isActive: collector.isActive
-            }
-        }
-    });
-});
-
-export const loginRecycler = asyncHandler(async (req, res) => {
-    const { recycler, token } = await loginRecyclerService(
-        req.validatedData.body
-    );
-
-    res.status(200).json({
-        success: true,
-        message: 'Recycler login successful',
-        data: {
-            token,
-            recycler: {
-                id: recycler._id,
-                recyclerId: recycler.recyclerId,
-                fullName: recycler.fullName,
-                email: recycler.email,
-                phone: recycler.phone,
-                profilePhoto: recycler.profilePhoto,
-                businessName: recycler.businessName,
-                businessAddress: recycler.businessAddress,
-                recyclerType: recycler.recyclerType,
-                pickupZone: recycler.pickupZone,
-                approvalStatus: recycler.approvalStatus,
-                isActive: recycler.isActive
             }
         }
     });
