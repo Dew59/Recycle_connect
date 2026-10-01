@@ -1,6 +1,5 @@
 import Household from '../models/householdModel.js';
 import Collector from '../models/collectorsModel.js';
-import Recycler from '../models/recyclerModel.js';
 import Admin from '../models/adminModel.js';
 import AppError from '../utils/AppError.js';
 import jwt from 'jsonwebtoken';
@@ -136,36 +135,6 @@ export const registerCollectorService = async ({
     return collector;
 };
 
-export const registerRecyclerService = async ({
-    fullName,
-    email,
-    phone,
-    password,
-    profilePhoto,
-    businessName,
-    businessAddress,
-    recyclerType,
-    identificationDocument,
-    pickupZone
-}) => {
-    await checkEmailAvailability(email);
-
-    const recycler = await Recycler.create({
-        fullName,
-        email,
-        phone,
-        passwordHash: password,
-        profilePhoto,
-        businessName,
-        businessAddress,
-        recyclerType,
-        identificationDocument,
-        pickupZone
-    });
-
-    return recycler;
-};
-
 export const registerAdminService = async ({
     fullName,
     email,
@@ -280,37 +249,6 @@ export const loginCollectorService = async ({ email, password }) => {
         collector,
         token
     };
-};
-
-export const loginRecyclerService = async ({ email, password }) => {
-    const recycler = await Recycler.findOne({ email }).select('+passwordHash');
-
-    if (!recycler) {
-        throw new AppError('Invalid email or password', 401);
-    }
-
-    if (!recycler.isActive) {
-        throw new AppError('Recycler account is inactive', 403);
-    }
-
-    const isPasswordValid = await recycler.comparePassword(password);
-
-    if (!isPasswordValid) {
-        throw new AppError('Invalid email or password', 401);
-    }
-
-    const token = jwt.sign(
-        {
-            id: recycler._id,
-            role: 'recycler'
-        },
-        process.env.JWT_SECRET,
-        {
-            expiresIn: '7d'
-        }
-    );
-
-    return { recycler, token };
 };
 
 export const loginAdminService = async ({ email, password }) => {

@@ -1,8 +1,8 @@
 
 import express from 'express';
 import validate from '../middlewares/validate.js';
-import { householdRegisterSchema, collectorRegisterSchema, recyclerRegisterSchema, adminRegisterSchema, householdLoginSchema, collectorLoginSchema, recyclerLoginSchema, adminLoginSchema } from '../validator/authValidator.js';
-import { registerHousehold, registerCollector, registerRecycler, registerAdmin, loginHousehold, loginCollector, loginRecycler, loginAdmin } from '../controllers/authController.js';
+import { householdRegisterSchema, collectorRegisterSchema, adminRegisterSchema, householdLoginSchema, collectorLoginSchema, adminLoginSchema } from '../validator/authValidator.js';
+import { registerHousehold, registerCollector, registerAdmin, loginHousehold, loginCollector, loginAdmin } from '../controllers/authController.js';
 import authMiddleware from '../middlewares/authMiddleware.js';
 import authorize from '../middlewares/authorizeMiddleware.js';
 import { uploadCollectorRegistration } from '../middlewares/uploadMiddleware.js';
@@ -24,12 +24,6 @@ router.post(
     uploadCollectorRegistration,
     validate({ body: collectorRegisterSchema }),
     registerCollector
-);
-
-router.post(
-    '/recycler/register',
-    validate({ body: recyclerRegisterSchema }),
-    registerRecycler
 );
 
 router.post(
@@ -55,12 +49,6 @@ router.post(
         body: collectorLoginSchema
     }),
     loginCollector
-);
-
-router.post(
-    '/recycler/login',
-    validate({ body: recyclerLoginSchema }),
-    loginRecycler
 );
 
 router.post(
