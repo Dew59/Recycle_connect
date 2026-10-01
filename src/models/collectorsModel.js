@@ -42,9 +42,21 @@ const collectorSchema = new mongoose.Schema(
         },
 
         identificationDocument: {
-            type: String,
-            required: true,
-            trim: true
+            publicId: {
+                type: String,
+                required: true,
+                trim: true
+            },
+            resourceType: {
+                type: String,
+                required: true,
+                trim: true
+            },
+            format: {
+                type: String,
+                required: true,
+                trim: true
+            }
         },
 
         collectorId: {
@@ -57,6 +69,12 @@ const collectorSchema = new mongoose.Schema(
             type: String,
             enum: ['PENDING', 'APPROVED', 'REJECTED'],
             default: 'PENDING'
+        },
+
+        rejectionReason: {
+            type: String,
+            default: null,
+            trim: true
         },
 
         approvedAt: {

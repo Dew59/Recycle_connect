@@ -3,6 +3,8 @@ import Collector from '../models/collectorsModel.js';
 import Admin from '../models/adminModel.js';
 import AppError from '../utils/AppError.js';
 import jwt from 'jsonwebtoken';
+import { uploadIdentificationDocumentService } from './fileUploadService.js';
+import uploadToCloudinary from '../utils/cloudinaryUpload.js';
 
 const checkEmailAvailability = async (email) => {
     const [household, collector, recycler, admin] = await Promise.all([
@@ -45,15 +47,38 @@ export const registerHouseholdService = async ({
     fullName,
     email,
     phone,
-    password
+    password,
+    profilePhoto
 }) => {
     await checkEmailAvailability(email);
+
+    let profilePhotoUrl = null;
+
+    if (profilePhoto) {
+        try {
+            const profilePhotoResult = await uploadToCloudinary(
+                profilePhoto.buffer,
+                {
+                    folder: 'recycle-connect/profile-photos/households',
+                    resourceType: 'image'
+                }
+            );
+
+            profilePhotoUrl = profilePhotoResult.secure_url;
+        } catch (error) {
+            throw new AppError(
+                'Failed to upload household profile photo',
+                500
+            );
+        }
+    }
 
     const household = await Household.create({
         fullName,
         email,
         phone,
         passwordHash: password,
+        profilePhoto: profilePhotoUrl
     });
 
     return household;
@@ -65,18 +90,46 @@ export const registerCollectorService = async ({
     phone,
     password,
     address,
+    profilePhoto,
     identificationDocument
 }) => {
     await checkEmailAvailability(email);
+
+    let profilePhotoUrl;
+
+    if (profilePhoto) {
+        try {
+            const profilePhotoResult = await uploadToCloudinary(
+                profilePhoto.buffer,
+                {
+                    folder: 'recycle-connect/profile-photos/collectors',
+                    resourceType: 'image'
+                }
+            );
+
+            profilePhotoUrl = profilePhotoResult.secure_url;
+        } catch (error) {
+            throw new AppError(
+                'Failed to upload profile photo',
+                500
+            );
+        }
+    }
+
+    const identificationDocumentData =
+        await uploadIdentificationDocumentService(
+            identificationDocument,
+            'recycle-connect/identification-documents/collectors'
+        );
 
     const collector = await Collector.create({
         fullName,
         email,
         phone,
-        passwordHash: password
-    ,
+        passwordHash: password,
         address,
-        identificationDocument
+        profilePhoto: profilePhotoUrl,
+        identificationDocument: identificationDocumentData
     });
 
     return collector;
@@ -91,12 +144,33 @@ export const registerAdminService = async ({
 }) => {
     await checkEmailAvailability(email);
 
+    let profilePhotoUrl = null;
+
+    if (profilePhoto) {
+        try {
+            const profilePhotoResult = await uploadToCloudinary(
+                profilePhoto.buffer,
+                {
+                    folder: 'recycle-connect/profile-photos/admins',
+                    resourceType: 'image'
+                }
+            );
+
+            profilePhotoUrl = profilePhotoResult.secure_url;
+        } catch (error) {
+            throw new AppError(
+                'Failed to upload admin profile photo',
+                500
+            );
+        }
+    }
+
     const admin = await Admin.create({
         fullName,
         email,
         phone,
         passwordHash: password,
-        profilePhoto
+        profilePhoto: profilePhotoUrl
     });
 
     return admin;

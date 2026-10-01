@@ -46,12 +46,7 @@ export const collectorRegisterSchema = z.object({
     address: z
         .string()
         .trim()
-        .min(3, 'Address is required'),
-
-    identificationDocument: z
-        .string()
-        .trim()
-        .min(1, 'Identification document is required')
+        .min(3, 'Address is required')
 });
 
 export const adminRegisterSchema = z.object({
