@@ -5,11 +5,14 @@ import { householdRegisterSchema, collectorRegisterSchema, recyclerRegisterSchem
 import { registerHousehold, registerCollector, registerRecycler, registerAdmin, loginHousehold, loginCollector, loginRecycler, loginAdmin } from '../controllers/authController.js';
 import authMiddleware from '../middlewares/authMiddleware.js';
 import authorize from '../middlewares/authorizeMiddleware.js';
+import { uploadCollectorRegistration } from '../middlewares/uploadMiddleware.js';
+import { uploadProfilePhoto } from '../middlewares/uploadMiddleware.js';
 
 const router = express.Router();
 
 router.post(
     '/household/register',
+    uploadProfilePhoto,
     validate({
         body: householdRegisterSchema
     }),
@@ -18,9 +21,8 @@ router.post(
 
 router.post(
     '/collector/register',
-    validate({
-        body: collectorRegisterSchema
-    }),
+    uploadCollectorRegistration,
+    validate({ body: collectorRegisterSchema }),
     registerCollector
 );
 
@@ -34,6 +36,7 @@ router.post(
     '/admin/register',
     authMiddleware,
     authorize('admin'),
+    uploadProfilePhoto,
     validate({ body: adminRegisterSchema }),
     registerAdmin
 );

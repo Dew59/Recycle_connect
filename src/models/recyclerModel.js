@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
-import bcrypt from 'bcrypt';
 
-const pickupZoneSchema = new mongoose.Schema(
+const routeSchema = new mongoose.Schema(
     {
         state: {
             type: String,
@@ -34,7 +33,7 @@ const pickupZoneSchema = new mongoose.Schema(
 
 const recyclerSchema = new mongoose.Schema(
     {
-        fullName: {
+        businessName: {
             type: String,
             required: true,
             trim: true
@@ -54,10 +53,10 @@ const recyclerSchema = new mongoose.Schema(
             trim: true
         },
 
-        passwordHash: {
+        businessAddress: {
             type: String,
             required: true,
-            select: false
+            trim: true
         },
 
         profilePhoto: {
@@ -65,56 +64,9 @@ const recyclerSchema = new mongoose.Schema(
             default: null
         },
 
-        businessName: {
-            type: String,
-            required: true,
-            trim: true
-        },
-
-        businessAddress: {
-            type: String,
-            required: true,
-            trim: true
-        },
-
-        recyclerType: {
-            type: String,
-            required: true,
-            trim: true
-        },
-
-        identificationDocument: {
-            type: String,
-            required: true,
-            trim: true
-        },
-
-        pickupZone: {
-            type: pickupZoneSchema,
+        route: {
+            type: routeSchema,
             required: true
-        },
-
-        recyclerId: {
-            type: String,
-            unique: true,
-            sparse: true
-        },
-
-        approvalStatus: {
-            type: String,
-            enum: ['PENDING', 'APPROVED', 'REJECTED'],
-            default: 'PENDING'
-        },
-
-        approvedAt: {
-            type: Date,
-            default: null
-        },
-
-        approvedBy: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Admin',
-            default: null
         },
 
         isActive: {
@@ -126,20 +78,6 @@ const recyclerSchema = new mongoose.Schema(
         timestamps: true
     }
 );
-
-// Hash password before saving
-recyclerSchema.pre('save', async function () {
-    if (!this.isModified('passwordHash')) {
-        return;
-    }
-
-    this.passwordHash = await bcrypt.hash(this.passwordHash, 12);
-});
-
-// Compare plain password with stored hash
-recyclerSchema.methods.comparePassword = async function (plainPassword) {
-    return bcrypt.compare(plainPassword, this.passwordHash);
-};
 
 const Recycler = mongoose.model('Recycler', recyclerSchema);
 

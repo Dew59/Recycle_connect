@@ -1,11 +1,15 @@
 
 import { registerHouseholdService, registerCollectorService, registerRecyclerService, registerAdminService, loginHouseholdService, loginCollectorService, loginRecyclerService, loginAdminService } from '../services/authService.js';
 import asyncHandler from '../utils/asyncHandler.js';
+import AppError from '../utils/AppError.js'
 
 export const registerHousehold = asyncHandler(async (req, res) => {
-    const household = await registerHouseholdService(
-        req.validatedData.body
-    );
+    const profilePhoto = req.file;
+
+    const household = await registerHouseholdService({
+        ...req.validatedData.body,
+        profilePhoto
+    });
 
     res.status(201).json({
         success: true,
@@ -24,9 +28,24 @@ export const registerHousehold = asyncHandler(async (req, res) => {
 });
 
 export const registerCollector = asyncHandler(async (req, res) => {
-    const collector = await registerCollectorService(
-        req.validatedData.body
-    );
+    const files = req.files || {};
+
+    const profilePhoto = files.profilePhoto?.[0];
+    const identificationDocument =
+        files.identificationDocument?.[0];
+
+    if (!identificationDocument) {
+        throw new AppError(
+            'Identification document is required',
+            400
+        );
+    }
+
+    const collector = await registerCollectorService({
+        ...req.validatedData.body,
+        profilePhoto,
+        identificationDocument
+    });
 
     res.status(201).json({
         success: true,
@@ -37,7 +56,6 @@ export const registerCollector = asyncHandler(async (req, res) => {
             email: collector.email,
             phone: collector.phone,
             profilePhoto: collector.profilePhoto,
-            address: collector.address,
             identificationDocument: collector.identificationDocument,
             approvalStatus: collector.approvalStatus,
             isActive: collector.isActive,
@@ -73,7 +91,12 @@ export const registerRecycler = asyncHandler(async (req, res) => {
 });
 
 export const registerAdmin = asyncHandler(async (req, res) => {
-    const admin = await registerAdminService(req.validatedData.body);
+    const profilePhoto = req.file;
+
+    const admin = await registerAdminService({
+        ...req.validatedData.body,
+        profilePhoto
+    });
 
     res.status(201).json({
         success: true,
