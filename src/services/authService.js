@@ -7,10 +7,9 @@ import { uploadIdentificationDocumentService } from './fileUploadService.js';
 import uploadToCloudinary from '../utils/cloudinaryUpload.js';
 
 const checkEmailAvailability = async (email) => {
-    const [household, collector, recycler, admin] = await Promise.all([
+    const [household, collector, admin] = await Promise.all([
         Household.findOne({ email }),
         Collector.findOne({ email }),
-        Recycler.findOne({ email }),
         Admin.findOne({ email })
     ]);
 
@@ -31,13 +30,6 @@ const checkEmailAvailability = async (email) => {
     if (admin) {
         throw new AppError(
             'This email is already registered as an admin',
-            409
-        );
-    }
-
-    if (recycler) {
-        throw new AppError(
-            'This email is already registered as a recycler', 
             409
         );
     }
@@ -90,6 +82,7 @@ export const registerCollectorService = async ({
     phone,
     password,
     address,
+    route,
     profilePhoto,
     identificationDocument
 }) => {
@@ -128,6 +121,7 @@ export const registerCollectorService = async ({
         phone,
         passwordHash: password,
         address,
+        route,
         profilePhoto: profilePhotoUrl,
         identificationDocument: identificationDocumentData
     });

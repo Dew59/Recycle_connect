@@ -41,6 +41,26 @@ const collectorSchema = new mongoose.Schema(
             trim: true
         },
 
+        route: {
+            area: {
+                type: String,
+                required: true,
+                trim: true
+            },
+
+            lga: {
+                type: String,
+                required: true,
+                trim: true
+            },
+
+            state: {
+                type: String,
+                required: true,
+                trim: true
+            }
+        },
+
         identificationDocument: {
             publicId: {
                 type: String,

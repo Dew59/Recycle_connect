@@ -57,6 +57,7 @@ export const registerCollector = asyncHandler(async (req, res) => {
             phone: collector.phone,
             profilePhoto: collector.profilePhoto,
             identificationDocument: collector.identificationDocument,
+            route: collector.route,
             approvalStatus: collector.approvalStatus,
             isActive: collector.isActive,
             createdAt: collector.createdAt,
@@ -129,6 +130,7 @@ export const loginCollector = asyncHandler(async (req, res) => {
                 phone: collector.phone,
                 profilePhoto: collector.profilePhoto,
                 address: collector.address,
+                route: collector.route,
                 approvalStatus: collector.approvalStatus,
                 isActive: collector.isActive
             }
