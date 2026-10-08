@@ -6,6 +6,9 @@ import adminRoutes from './routes/adminRoute.js';
 import collectorRoutes from './routes/collectorRoute.js';
 import materialRoutes from './routes/materialRoute.js';
 import incentiveRateRoutes from './routes/incentiveRateRoute.js';
+import pickupRoutes from './routes/pickupRoute.js';
+import collectionRoutes from './routes/collectionRoute.js';
+import incentiveTransactionRoutes from './routes/incentiveTransactionRoute.js';
 
 const app = express();
 
@@ -16,6 +19,9 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/collectors', collectorRoutes);
 app.use('/api/materials', materialRoutes);
 app.use('/api/incentive-rates', incentiveRateRoutes);
+app.use('/api/pickups', pickupRoutes);
+app.use('/api/collections', collectionRoutes);
+app.use('/api/collections', incentiveTransactionRoutes);
 
 // Handle unknown routes
 app.use((req, res, next) => {

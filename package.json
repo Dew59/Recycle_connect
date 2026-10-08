@@ -23,10 +23,13 @@
     "mongoose": "^9.10.2",
     "multer": "^2.4.0",
     "nodemailer": "^10.0.10",
+    "resend": "^6.32.0",
     "zod": "^4.6.5"
   },
   "allowScripts": {
-    "bcrypt@6.0.0": true
+    "bcrypt@6.0.0": true,
+    "@firebase/util@1.15.3": true,
+    "protobufjs@7.6.6": true
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
