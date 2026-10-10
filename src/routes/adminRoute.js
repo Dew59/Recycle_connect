@@ -1,8 +1,8 @@
 import express from 'express';
 import authMiddleware from '../middlewares/authMiddleware.js';
 import authorize from '../middlewares/authorizeMiddleware.js';
-import { approveCollector, getPendingCollectors, getCollectorIdentificationDocument, rejectCollector, registerRecycler } from '../controllers/adminController.js';
-import { rejectCollectorSchema, adminRegisterRecyclerSchema } from '../validator/adminValidator.js';
+import { approveCollector, getPendingCollectors, getCollectorIdentificationDocument, rejectCollector, registerRecycler, getAllCollectors, getAllHouseholds, getAllPickups, getAllIncentiveTransactions,getIncentiveTransactionById } from '../controllers/adminController.js';
+import { rejectCollectorSchema, adminRegisterRecyclerSchema, getAllCollectorsQuerySchema, getAllIncentiveTransactionsQuerySchema, getIncentiveTransactionByIdParamsSchema } from '../validator/adminValidator.js';
 import validate from '../middlewares/validate.js';
 import { uploadProfilePhoto } from '../middlewares/uploadMiddleware.js';
 
@@ -45,5 +45,47 @@ router.post(
     validate({ body: adminRegisterRecyclerSchema }),
     registerRecycler
 );
+
+router.get(
+    '/collectors',
+    authMiddleware,
+    authorize('admin'),
+    validate({ query: getAllCollectorsQuerySchema }),
+    getAllCollectors
+);
+
+router.get(
+    '/households',
+    authMiddleware,
+    authorize('admin'),
+    validate({ query: getAllCollectorsQuerySchema }),
+    getAllHouseholds
+);
+
+router.get(
+    '/pickups',
+    authMiddleware,
+    authorize('admin'),
+    validate({ query: getAllCollectorsQuerySchema }),
+    getAllPickups
+);
+
+router.get(
+    '/incentive-transactions',
+    authMiddleware,
+    authorize('admin'),
+    validate({ query: getAllIncentiveTransactionsQuerySchema }),
+    getAllIncentiveTransactions
+);
+
+
+router.get(
+    '/incentive-transactions/:transactionId',
+    authMiddleware,
+    authorize('admin'),
+    validate({ params: getIncentiveTransactionByIdParamsSchema }),
+    getIncentiveTransactionById
+);
+
 
 export default router;

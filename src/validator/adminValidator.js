@@ -49,3 +49,25 @@ export const adminRegisterRecyclerSchema = z.object({
         .trim()
         .min(2, 'Area is required')
 });
+
+export const getAllCollectorsQuerySchema = z.object({
+    cursor: z
+        .string()
+        .trim()
+        .optional()
+});
+
+export const getAllIncentiveTransactionsQuerySchema = z.object({
+    cursor: z
+        .string()
+        .trim()
+        .regex(/^[0-9a-fA-F]{24}$/, 'Invalid pagination cursor')
+        .optional()
+});
+
+export const getIncentiveTransactionByIdParamsSchema = z.object({
+    transactionId: z
+        .string()
+        .trim()
+        .regex(/^[0-9a-fA-F]{24}$/, 'Invalid incentive transaction ID')
+});

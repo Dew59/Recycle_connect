@@ -1,5 +1,5 @@
 import asyncHandler from '../utils/asyncHandler.js';
-import { approveCollectorService, getPendingCollectorsService, getCollectorIdentificationDocumentService, rejectCollectorService, registerRecyclerService } from '../services/adminService.js';
+import { approveCollectorService, getPendingCollectorsService, getCollectorIdentificationDocumentService, rejectCollectorService, registerRecyclerService, getAllCollectorsService, getAllHouseholdsService, getAllPickupsService, getAllIncentiveTransactionsService, getIncentiveTransactionByIdService } from '../services/adminService.js';
 
 export const getPendingCollectors = asyncHandler(async (req, res) => {
     const collectors = await getPendingCollectorsService();
@@ -118,3 +118,88 @@ export const registerRecycler = asyncHandler(async (req, res) => {
         }
     });
 });
+
+export const getAllCollectors = asyncHandler(async (req, res) => {
+    const { cursor } = req.validatedData.query;
+
+    const result = await getAllCollectorsService({ cursor });
+
+    res.status(200).json({
+        success: true,
+        message: 'Collectors retrieved successfully',
+        data: result.collectors,
+        pagination: {
+            nextCursor: result.nextCursor,
+            limit: 10
+        }
+    });
+});
+
+export const getAllHouseholds = asyncHandler(async (req, res) => {
+    const { cursor } = req.validatedData.query;
+
+    const result = await getAllHouseholdsService({ cursor });
+
+    res.status(200).json({
+        success: true,
+        message: 'Households retrieved successfully',
+        data: result.households,
+        pagination: {
+            nextCursor: result.nextCursor,
+            limit: 10
+        }
+    });
+});
+
+export const getAllPickups = asyncHandler(async (req, res) => {
+    const { cursor } = req.validatedData.query;
+
+    const result = await getAllPickupsService({ cursor });
+
+    res.status(200).json({
+        success: true,
+        message: 'Pickups retrieved successfully',
+        data: result.pickups,
+        pagination: {
+            nextCursor: result.nextCursor,
+            limit: 10
+        }
+    });
+});
+
+
+export const getAllIncentiveTransactions = asyncHandler(
+    async (req, res) => {
+        const { cursor } = req.validatedData.query;
+
+        const result = await getAllIncentiveTransactionsService({
+            cursor
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Incentive transactions retrieved successfully',
+            data: result.transactions,
+            pagination: {
+                nextCursor: result.nextCursor,
+                limit: 10
+            }
+        });
+    }
+);
+
+
+export const getIncentiveTransactionById = asyncHandler(
+    async (req, res) => {
+        const { transactionId } = req.validatedData.params;
+
+        const transaction =
+            await getIncentiveTransactionByIdService(transactionId);
+
+        res.status(200).json({
+            success: true,
+            message: 'Incentive transaction retrieved successfully',
+            data: transaction
+        });
+    }
+);
