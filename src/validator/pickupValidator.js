@@ -47,15 +47,35 @@ export const createPickupSchema = z
             .trim()
             .optional(),
 
+
         date: z
             .string()
             .trim()
-            .min(1, 'Pickup date is required'),
+            .regex(
+                /^\d{4}-\d{2}-\d{2}$/,
+                'Pickup date must be in YYYY-MM-DD format, e.g. 2026-10-15'
+            )
+            .refine((value) => {
+                const [year, month, day] = value.split('-').map(Number);
+                const date = new Date(Date.UTC(year, month - 1, day));
+
+                return (
+                    date.getUTCFullYear() === year &&
+                    date.getUTCMonth() === month - 1 &&
+                    date.getUTCDate() === day
+                );
+            }, 'Pickup date must be a valid calendar date'),
+
+
 
         time: z
             .string()
             .trim()
-            .min(1, 'Pickup time is required')
+            .regex(
+                /^([01]\d|2[0-3]):[0-5]\d$/,
+                'Pickup time must be in 24-hour format (HH:mm), e.g. 14:30'
+            )
+
     })
     .transform((data, ctx) => {
         let materials;

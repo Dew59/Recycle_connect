@@ -1,4 +1,7 @@
 import Collector from '../models/collectorsModel.js';
+import Household from '../models/householdModel.js';
+import Pickup from '../models/pickupModel.js';
+import IncentiveTransaction from '../models/incentiveTransactionModel.js';
 import AppError from '../utils/AppError.js';
 import { generateAuthenticatedUrl } from '../utils/cloudinaryAccess.js';
 import Recycler from '../models/recyclerModel.js';
@@ -183,4 +186,198 @@ export const registerRecyclerService = async ({
     });
 
     return recycler;
+};
+
+export const getAllCollectorsService = async ({ cursor }) => {
+    const limit = 10;
+
+    const query = {};
+
+    if (cursor) {
+        query._id = {
+            $lt: cursor
+        };
+    }
+
+    const collectors = await Collector.find(query)
+        .select(
+            'fullName email phone collectorId approvalStatus profilePhoto createdAt'
+        )
+        .sort({ _id: -1 })
+        .limit(limit + 1);
+
+    const hasNextPage = collectors.length > limit;
+
+    if (hasNextPage) {
+        collectors.pop();
+    }
+
+    const nextCursor = hasNextPage
+        ? collectors[collectors.length - 1]._id
+        : null;
+
+    return {
+        collectors,
+        nextCursor
+    };
+};
+
+export const getAllHouseholdsService = async ({ cursor }) => {
+    const limit = 10;
+
+    const query = {};
+
+    if (cursor) {
+        query._id = {
+            $lt: cursor
+        };
+    }
+
+    const households = await Household.find(query)
+        .select(
+            'fullName email phone profilePhoto isActive createdAt'
+        )
+        .sort({ _id: -1 })
+        .limit(limit + 1);
+
+    const hasNextPage = households.length > limit;
+
+    if (hasNextPage) {
+        households.pop();
+    }
+
+    const nextCursor = hasNextPage
+        ? households[households.length - 1]._id
+        : null;
+
+    return {
+        households,
+        nextCursor
+    };
+};
+
+export const getAllPickupsService = async ({ cursor }) => {
+    const limit = 10;
+
+    const query = {};
+
+    if (cursor) {
+        query._id = {
+            $lt: cursor
+        };
+    }
+
+    const pickups = await Pickup.find(query)
+        .populate({
+            path: 'household',
+            select: 'fullName phone email'
+        })
+        .populate({
+            path: 'materials',
+            select: 'name description'
+        })
+        .populate({
+            path: 'collector',
+            select: 'fullName phone email collectorId'
+        })
+        .select(
+            'household materials location date time status image createdAt updatedAt'
+        )
+        .sort({ _id: -1 })
+        .limit(limit + 1);
+
+    const hasNextPage = pickups.length > limit;
+
+    if (hasNextPage) {
+        pickups.pop();
+    }
+
+    const nextCursor = hasNextPage
+        ? pickups[pickups.length - 1]._id
+        : null;
+
+    return {
+        pickups,
+        nextCursor
+    };
+};
+
+
+export const getAllIncentiveTransactionsService = async ({ cursor }) => {
+    const limit = 10;
+    const query = {};
+
+    if (cursor) {
+        query._id = { $lt: cursor };
+    }
+
+    const transactions = await IncentiveTransaction.find(query)
+        .populate({
+            path: 'household',
+            select: 'fullName phone email'
+        })
+        .populate({
+            path: 'collector',
+            select: 'fullName phone email collectorId'
+        })
+        .populate({
+            path: 'pickup',
+            select: 'location date time status'
+        })
+        .populate({
+            path: 'collectionRecord',
+            select: 'materials createdAt'
+        })
+        .populate({
+            path: 'materials.material',
+            select: 'name description'
+        })
+        .sort({ _id: -1 })
+        .limit(limit + 1);
+
+    const hasNextPage = transactions.length > limit;
+
+    if (hasNextPage) {
+        transactions.pop();
+    }
+
+    const nextCursor = hasNextPage
+        ? transactions[transactions.length - 1]._id
+        : null;
+
+    return {
+        transactions,
+        nextCursor
+    };
+};
+
+
+export const getIncentiveTransactionByIdService = async (transactionId) => {
+    const transaction = await IncentiveTransaction.findById(transactionId)
+        .populate({
+            path: 'household',
+            select: 'fullName phone email'
+        })
+        .populate({
+            path: 'collector',
+            select: 'fullName phone email collectorId'
+        })
+        .populate({
+            path: 'pickup',
+            select: 'location date time status'
+        })
+        .populate({
+            path: 'collectionRecord',
+            select: 'materials createdAt'
+        })
+        .populate({
+            path: 'materials.material',
+            select: 'name description'
+        });
+
+    if (!transaction) {
+        throw new AppError('Incentive transaction not found', 404);
+    }
+
+    return transaction;
 };

@@ -1,5 +1,5 @@
 import asyncHandler from '../utils/asyncHandler.js';
-import { createPickupService, getHouseholdPickupsService, getPickupDetailsService, claimPickupService, deletePickupService, cancelClaimedPickupService } from '../services/pickupService.js';
+import { createPickupService, getHouseholdPickupsService, getPickupDetailsService, claimPickupService, deletePickupService, cancelClaimedPickupService, confirmPickupService } from '../services/pickupService.js';
 
 export const createPickup = asyncHandler(async (req, res) => {
     const pickup = await createPickupService({
@@ -88,6 +88,22 @@ export const cancelClaimedPickup = asyncHandler(async (req, res) => {
     res.status(200).json({
         success: true,
         message: 'Pickup cancelled successfully',
+        data: pickup
+    });
+});
+
+
+export const confirmPickup = asyncHandler(async (req, res) => {
+    const { pickupId } = req.validatedData.params;
+
+    const pickup = await confirmPickupService({
+        pickupId,
+        householdId: req.user.id
+    });
+
+    res.status(200).json({
+        success: true,
+        message: 'Pickup confirmed successfully',
         data: pickup
     });
 });

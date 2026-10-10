@@ -88,6 +88,17 @@ const pickupSchema = new mongoose.Schema(
             default: null
         },
 
+        confirmationMessage: {
+            type: String,
+            default: null,
+            trim: true
+        },
+
+        confirmedAt: {
+            type: Date,
+            default: null
+        },
+
         collector: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Collector',

@@ -9,9 +9,13 @@ import incentiveRateRoutes from './routes/incentiveRateRoute.js';
 import pickupRoutes from './routes/pickupRoute.js';
 import collectionRoutes from './routes/collectionRoute.js';
 import incentiveTransactionRoutes from './routes/incentiveTransactionRoute.js';
+import incentiveProofRoutes from './routes/incentiveProofRoute.js';
+import healthRoutes from './routes/healthRoute.js';
+import corsConfig from './config/corsConfig.js';
 
 const app = express();
 
+app.use(corsConfig);
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
@@ -22,6 +26,8 @@ app.use('/api/incentive-rates', incentiveRateRoutes);
 app.use('/api/pickups', pickupRoutes);
 app.use('/api/collections', collectionRoutes);
 app.use('/api/collections', incentiveTransactionRoutes);
+app.use('/api/collections', incentiveProofRoutes);
+app.use('/api/health', healthRoutes);
 
 // Handle unknown routes
 app.use((req, res, next) => {

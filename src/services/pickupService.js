@@ -4,6 +4,7 @@ import Collector from '../models/collectorsModel.js';
 import AppError from '../utils/AppError.js';
 import uploadToCloudinary from '../utils/cloudinaryUpload.js';
 import { sendPickupCancellationEmail } from './emailService.js';
+import IncentiveTransaction from '../models/incentiveTransactionModel.js';
 
 export const createPickupService = async ({
     householdId,
@@ -246,6 +247,8 @@ export const getPickupDetailsService = async ({
     }
 
     // Household can only view their own pickup.
+
+    // Household can only view their own pickup.
     if (userRole === 'household') {
         if (pickup.household._id.toString() !== userId) {
             throw new AppError(
@@ -254,8 +257,23 @@ export const getPickupDetailsService = async ({
             );
         }
 
-        return pickup;
+        const transaction = await IncentiveTransaction.findOne({
+            pickup: pickup._id
+        }).select('proof totalAmount currency');
+
+        const pickupData = pickup.toObject();
+
+        pickupData.incentiveTransaction = transaction
+            ? {
+                proof: transaction.proof,
+                totalAmount: transaction.totalAmount,
+                currency: transaction.currency
+            }
+            : null;
+
+        return pickupData;
     }
+
 
     // Collector can view pending pickups before claiming.
     if (userRole === 'collector') {
@@ -422,9 +440,9 @@ export const cancelClaimedPickupService = async ({
         );
     }
 
-    if (pickup.status !== 'CLAIMED') {
+    if (['PENDING', 'COMPLETED', 'CANCELLED'].includes(pickup.status)) {
         throw new AppError(
-            'Only claimed pickups can be cancelled',
+            'This pickup cannot be cancelled in its current status',
             409
         );
     }
@@ -470,4 +488,90 @@ export const cancelClaimedPickupService = async ({
     }
 
     return pickup;
+};
+
+
+export const confirmPickupService = async ({
+    pickupId,
+    householdId
+}) => {
+    // 1. Find the pickup
+    const pickup = await Pickup.findById(pickupId);
+
+    if (!pickup) {
+        throw new AppError('Pickup not found', 404);
+    }
+
+    // 2. Verify household ownership
+    if (pickup.household.toString() !== householdId) {
+        throw new AppError(
+            'You are not authorized to confirm this pickup',
+            403
+        );
+    }
+
+    // 3. Ensure the pickup is awaiting confirmation
+    if (pickup.status !== 'CONFIRMATION_PENDING') {
+        throw new AppError(
+            'Only pickups awaiting household confirmation can be confirmed',
+            409
+        );
+    }
+
+    // 4. Ensure the incentive transaction has saved proof
+    const transaction = await IncentiveTransaction.findOne({
+        pickup: pickup._id
+    }).select('proof');
+
+    if (!transaction || !transaction.proof) {
+        throw new AppError(
+            'Incentive proof must be uploaded before confirming this pickup',
+            409
+        );
+    }
+
+    // 5. Complete the pickup atomically
+    const confirmedPickup = await Pickup.findOneAndUpdate(
+        {
+            _id: pickupId,
+            household: householdId,
+            status: 'CONFIRMATION_PENDING'
+        },
+        {
+            $set: {
+                status: 'COMPLETED',
+                confirmationMessage:
+                    'My recyclable materials were collected and I received the calculated incentive.',
+                confirmedAt: new Date()
+            }
+        },
+        {
+            new: true,
+            runValidators: true
+        }
+    );
+
+    if (!confirmedPickup) {
+        throw new AppError(
+            'This pickup could not be confirmed. Its status may have changed.',
+            409
+        );
+    }
+
+    await confirmedPickup.populate([
+        {
+            path: 'household',
+            select: 'fullName phone email'
+        },
+        {
+            path: 'materials',
+            select: 'name description'
+        },
+        {
+            path: 'collector',
+            select: 'fullName phone email collectorId'
+        }
+    ]);
+
+    return confirmedPickup;
 };
