@@ -71,3 +71,23 @@ export const getIncentiveTransactionByIdParamsSchema = z.object({
         .trim()
         .regex(/^[0-9a-fA-F]{24}$/, 'Invalid incentive transaction ID')
 });
+
+export const updateAdminProfileSchema = z.object({
+    fullName: z.string()
+        .trim()
+        .min(1, 'Full name cannot be empty')
+        .optional(),
+
+    phone: z.string()
+        .trim()
+        .min(1, 'Phone number cannot be empty')
+        .optional()
+}).strict();
+
+export const changeAdminPasswordSchema = z.object({
+    currentPassword: z.string()
+        .min(1, 'Current password is required'),
+
+    newPassword: z.string()
+        .min(8, 'New password must be at least 8 characters long')
+}).strict();
