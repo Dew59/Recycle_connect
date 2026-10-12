@@ -1,6 +1,7 @@
 import asyncHandler from '../utils/asyncHandler.js';
 import AppError from '../utils/AppError.js';
 import { approveCollectorService, getPendingCollectorsService, getCollectorIdentificationDocumentService, rejectCollectorService, registerRecyclerService, getAllCollectorsService, getAllHouseholdsService, getAllPickupsService, getAllIncentiveTransactionsService, getIncentiveTransactionByIdService, getAdminProfileService, updateAdminProfileService, changeAdminPasswordService } from '../services/adminService.js';
+import { getPickupRatingsForAdminService } from '../services/ratingService.js';
 
 export const getPendingCollectors = asyncHandler(async (req, res) => {
     const collectors = await getPendingCollectorsService();
@@ -253,5 +254,17 @@ export const changeAdminPassword = asyncHandler(async (req, res) => {
     res.status(200).json({
         success: true,
         message: result.message
+    });
+});
+
+export const getPickupRatingsForAdmin = asyncHandler(async (req, res) => {
+    const { pickupId } = req.validatedData.params;
+
+    const ratings = await getPickupRatingsForAdminService(pickupId);
+
+    res.status(200).json({
+        success: true,
+        message: 'Pickup ratings retrieved successfully',
+        data: ratings
     });
 });

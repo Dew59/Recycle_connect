@@ -1,7 +1,7 @@
 import express from 'express';
 import authMiddleware from '../middlewares/authMiddleware.js';
 import authorize from '../middlewares/authorizeMiddleware.js';
-import { getActiveRecyclers, getPendingPickups, getAvailablePickups, getCollectorProfile,updateCollectorProfile, changeCollectorPassword } from '../controllers/collectorController.js';
+import { getActiveRecyclers, getPendingPickups, getAvailablePickups, getCollectorProfile,updateCollectorProfile, changeCollectorPassword, getCollectorRatingHistory } from '../controllers/collectorController.js';
 import validate from '../middlewares/validate.js';
 import { getPendingPickupsSchema } from '../validator/pickupValidator.js';
 import { uploadProfilePhoto } from '../middlewares/uploadMiddleware.js';
@@ -59,6 +59,13 @@ router.patch(
     authorize('collector'),
     validate({ body: changeCollectorPasswordSchema }),
     changeCollectorPassword
+);
+
+router.get(
+    '/ratings',
+    authMiddleware,
+    authorize('collector'),
+    getCollectorRatingHistory
 );
 
 

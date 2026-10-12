@@ -1,7 +1,7 @@
 import express from 'express';
 import authMiddleware from '../middlewares/authMiddleware.js';
 import authorize from '../middlewares/authorizeMiddleware.js';
-import { getHouseholdProfile, updateHouseholdProfile, changeHouseholdPassword } from '../controllers/householdController.js';
+import { getHouseholdProfile, updateHouseholdProfile, changeHouseholdPassword, getHouseholdRatingHistory } from '../controllers/householdController.js';
 import validate from '../middlewares/validate.js';
 import { uploadProfilePhoto } from '../middlewares/uploadMiddleware.js';
 import { updateHouseholdProfileSchema, changeHouseholdPasswordSchema } from '../validator/householdValidator.js';
@@ -32,6 +32,12 @@ router.patch(
     changeHouseholdPassword
 );
 
+router.get(
+    '/ratings',
+    authMiddleware,
+    authorize('household'),
+    getHouseholdRatingHistory
+);
 
 
 export default router;

@@ -5,6 +5,8 @@ import validate from '../middlewares/validate.js';
 import { uploadPickupPhoto } from '../middlewares/uploadMiddleware.js';
 import { createPickup, getHouseholdPickups, getPickupDetails, claimPickup, deletePickup, cancelClaimedPickup, confirmPickup } from '../controllers/pickupController.js';
 import { createPickupSchema, getHouseholdPickupsSchema, getPickupDetailsSchema, claimPickupSchema, deletePickupSchema, cancelPickupSchema } from '../validator/pickupValidator.js';
+import { createRating } from '../controllers/ratingController.js';
+import { createRatingSchema } from '../validator/ratingValidator.js';
 
 const router = express.Router();
 
@@ -78,6 +80,17 @@ router.post(
         params: getPickupDetailsSchema
     }),
     confirmPickup
+);
+
+router.post(
+    '/:pickupId/rating',
+    authMiddleware,
+    authorize('household', 'collector'),
+    validate({
+        params: getPickupDetailsSchema,
+        body: createRatingSchema
+    }),
+    createRating
 );
 
 export default router;

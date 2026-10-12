@@ -1,6 +1,7 @@
 import Pickup from '../models/pickupModel.js';
 import Material from '../models/materialModel.js';
 import Collector from '../models/collectorsModel.js';
+import Rating from '../models/ratingModel.js';
 import AppError from '../utils/AppError.js';
 import uploadToCloudinary from '../utils/cloudinaryUpload.js';
 import { sendPickupCancellationEmail } from './emailService.js';
@@ -241,9 +242,35 @@ export const getPickupDetailsService = async ({
         throw new AppError('Pickup not found', 404);
     }
 
-    // Admin can view every pickup at any status.
+    // Retrieve ratings associated with this pickup.
+    const submittedRatings = await Rating.find({
+        pickup: pickup._id
+    }).select('raterModel rateeModel stars comment createdAt');
+
+    // Admin can see submitted ratings at any time.
+    // Other users see ratings only after both participants have rated.
+    const ratingsVisible =
+        userRole === 'admin' ||
+        (
+            submittedRatings.some(
+                (rating) =>
+                    rating.raterModel === 'Household'
+            ) &&
+            submittedRatings.some(
+                (rating) =>
+                    rating.raterModel === 'Collector'
+            )
+        );
+
+    const ratings = ratingsVisible ? submittedRatings : [];
+
+    // Admin can view every pickup at any status,
+    // including ratings submitted so far.
     if (userRole === 'admin') {
-        return pickup;
+        const pickupData = pickup.toObject();
+        pickupData.ratings = ratings;
+
+        return pickupData;
     }
 
     // Household can only view their own pickup.
@@ -271,6 +298,8 @@ export const getPickupDetailsService = async ({
             }
             : null;
 
+        pickupData.ratings = ratings;
+
         return pickupData;
     }
 
@@ -291,7 +320,10 @@ export const getPickupDetailsService = async ({
         }
 
         if (pickup.status === 'PENDING') {
-            return pickup;
+            const pickupData = pickup.toObject();
+            pickupData.ratings = ratings;
+
+            return pickupData;
         }
 
         // After claiming, only the Collector who claimed it
@@ -306,7 +338,11 @@ export const getPickupDetailsService = async ({
             );
         }
 
-        return pickup;
+        const pickupData = pickup.toObject();
+        pickupData.ratings = ratings;
+
+        return pickupData;
+
     }
 
     throw new AppError(

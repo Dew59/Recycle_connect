@@ -1,10 +1,11 @@
 import express from 'express';
 import authMiddleware from '../middlewares/authMiddleware.js';
 import authorize from '../middlewares/authorizeMiddleware.js';
-import { approveCollector, getPendingCollectors, getCollectorIdentificationDocument, rejectCollector, registerRecycler, getAllCollectors, getAllHouseholds, getAllPickups, getAllIncentiveTransactions,getIncentiveTransactionById, getAdminProfile, updateAdminProfile, changeAdminPassword } from '../controllers/adminController.js';
+import { approveCollector, getPendingCollectors, getCollectorIdentificationDocument, rejectCollector, registerRecycler, getAllCollectors, getAllHouseholds, getAllPickups, getAllIncentiveTransactions,getIncentiveTransactionById, getAdminProfile, updateAdminProfile, changeAdminPassword, getPickupRatingsForAdmin } from '../controllers/adminController.js';
 import { rejectCollectorSchema, adminRegisterRecyclerSchema, getAllCollectorsQuerySchema, getAllIncentiveTransactionsQuerySchema, getIncentiveTransactionByIdParamsSchema, updateAdminProfileSchema, changeAdminPasswordSchema } from '../validator/adminValidator.js';
 import validate from '../middlewares/validate.js';
 import { uploadProfilePhoto } from '../middlewares/uploadMiddleware.js';
+import { getPickupDetailsSchema } from '../validator/pickupValidator.js';
 
 const router = express.Router();
 
@@ -78,7 +79,6 @@ router.get(
     getAllIncentiveTransactions
 );
 
-
 router.get(
     '/incentive-transactions/:transactionId',
     authMiddleware,
@@ -110,5 +110,14 @@ router.patch(
     validate({ body: changeAdminPasswordSchema }),
     changeAdminPassword
 );
+
+router.get(
+    '/:pickupId/ratings',
+    authMiddleware,
+    authorize('admin'),
+    validate({ params: getPickupDetailsSchema }),
+    getPickupRatingsForAdmin
+);
+
 
 export default router;
