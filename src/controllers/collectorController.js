@@ -2,6 +2,7 @@ import asyncHandler from '../utils/asyncHandler.js';
 import { getActiveRecyclersService, getCollectorProfileService, updateCollectorProfileService, changeCollectorPasswordService } from '../services/collectorService.js';
 import { getPendingPickupsService, getAvailablePickupsForCollectorService } from '../services/pickupService.js';
 import AppError from '../utils/AppError.js';
+import { getCollectorRatingHistoryService } from '../services/ratingService.js';
 
 export const getActiveRecyclers = asyncHandler(async (req, res) => {
     const recyclers = await getActiveRecyclersService();
@@ -93,5 +94,15 @@ export const changeCollectorPassword = asyncHandler(async (req, res) => {
     res.status(200).json({
         success: true,
         message: result.message
+    });
+});
+
+export const getCollectorRatingHistory = asyncHandler(async (req, res) => {
+    const ratings = await getCollectorRatingHistoryService(req.user.id);
+
+    res.status(200).json({
+        success: true,
+        message: 'Collector rating history retrieved successfully',
+        data: ratings
     });
 });
