@@ -1,4 +1,3 @@
-
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 
@@ -31,6 +30,11 @@ const collectorSchema = new mongoose.Schema(
         },
 
         profilePhoto: {
+            type: String,
+            default: null
+        },
+
+        profilePhotoPublicId: {
             type: String,
             default: null
         },

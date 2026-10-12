@@ -1,4 +1,3 @@
-
 import express from 'express';
 import validate from '../middlewares/validate.js';
 import { householdRegisterSchema, collectorRegisterSchema, adminRegisterSchema, householdLoginSchema, collectorLoginSchema, adminLoginSchema } from '../validator/authValidator.js';

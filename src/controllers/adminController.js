@@ -1,5 +1,6 @@
 import asyncHandler from '../utils/asyncHandler.js';
-import { approveCollectorService, getPendingCollectorsService, getCollectorIdentificationDocumentService, rejectCollectorService, registerRecyclerService, getAllCollectorsService, getAllHouseholdsService, getAllPickupsService, getAllIncentiveTransactionsService, getIncentiveTransactionByIdService } from '../services/adminService.js';
+import AppError from '../utils/AppError.js';
+import { approveCollectorService, getPendingCollectorsService, getCollectorIdentificationDocumentService, rejectCollectorService, registerRecyclerService, getAllCollectorsService, getAllHouseholdsService, getAllPickupsService, getAllIncentiveTransactionsService, getIncentiveTransactionByIdService, getAdminProfileService, updateAdminProfileService, changeAdminPasswordService } from '../services/adminService.js';
 
 export const getPendingCollectors = asyncHandler(async (req, res) => {
     const collectors = await getPendingCollectorsService();
@@ -203,3 +204,54 @@ export const getIncentiveTransactionById = asyncHandler(
         });
     }
 );
+
+
+export const getAdminProfile = asyncHandler(async (req, res) => {
+    const admin = await getAdminProfileService(req.user.id);
+
+    res.status(200).json({
+        success: true,
+        message: 'Admin profile retrieved successfully',
+        data: admin
+    });
+});
+
+export const updateAdminProfile = asyncHandler(async (req, res) => {
+    const body = req.validatedData?.body ?? {};
+    const profilePhoto = req.file;
+
+    if (Object.keys(body).length === 0 && !profilePhoto) {
+        throw new AppError(
+            'Provide at least one profile field or a profile photo',
+            400
+        );
+    }
+
+    const admin = await updateAdminProfileService(
+        req.user.id,
+        {
+            ...body,
+            profilePhoto
+        }
+    );
+
+    res.status(200).json({
+        success: true,
+        message: 'Admin profile updated successfully',
+        data: admin
+    });
+});
+
+export const changeAdminPassword = asyncHandler(async (req, res) => {
+    const { currentPassword, newPassword } = req.validatedData.body;
+
+    const result = await changeAdminPasswordService(
+        req.user.id,
+        { currentPassword, newPassword }
+    );
+
+    res.status(200).json({
+        success: true,
+        message: result.message
+    });
+});

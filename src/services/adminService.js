@@ -1,11 +1,13 @@
 import Collector from '../models/collectorsModel.js';
 import Household from '../models/householdModel.js';
 import Pickup from '../models/pickupModel.js';
+import Admin from '../models/adminModel.js';
 import IncentiveTransaction from '../models/incentiveTransactionModel.js';
 import AppError from '../utils/AppError.js';
 import { generateAuthenticatedUrl } from '../utils/cloudinaryAccess.js';
 import Recycler from '../models/recyclerModel.js';
 import uploadToCloudinary from '../utils/cloudinaryUpload.js';
+import cloudinary from '../config/cloudinaryConfig.js';
 
 export const getPendingCollectorsService = async () => {
     const collectors = await Collector.find({
@@ -380,4 +382,139 @@ export const getIncentiveTransactionByIdService = async (transactionId) => {
     }
 
     return transaction;
+};
+
+
+export const getAdminProfileService = async (adminId) => {
+    const admin = await Admin.findById(adminId)
+        .select(
+            'fullName email phone profilePhoto isActive createdAt updatedAt'
+        );
+
+    if (!admin) {
+        throw new AppError('Admin not found', 404);
+    }
+
+    return admin;
+};
+
+export const updateAdminProfileService = async (
+    adminId,
+    { fullName, phone, profilePhoto }
+) => {
+    const admin = await Admin.findById(adminId);
+
+    if (!admin) {
+        throw new AppError('Admin not found', 404);
+    }
+
+    if (fullName !== undefined) {
+        admin.fullName = fullName;
+    }
+
+    if (phone !== undefined) {
+        admin.phone = phone;
+    }
+
+    const previousPhotoPublicId = admin.profilePhotoPublicId;
+    let uploadedPhoto = null;
+
+    try {
+        if (profilePhoto) {
+            uploadedPhoto = await uploadToCloudinary(
+                profilePhoto.buffer,
+                {
+                    folder: 'recycle-connect/profile-photos/admins',
+                    resourceType: 'image'
+                }
+            );
+
+            admin.profilePhoto = uploadedPhoto.secure_url;
+            admin.profilePhotoPublicId = uploadedPhoto.public_id;
+        }
+
+        await admin.save();
+    } catch (error) {
+        if (uploadedPhoto?.public_id) {
+            try {
+                await cloudinary.uploader.destroy(
+                    uploadedPhoto.public_id,
+                    { resource_type: 'image' }
+                );
+            } catch (cleanupError) {
+                console.error(
+                    'Failed to clean up newly uploaded Admin photo:',
+                    cleanupError.message
+                );
+            }
+        }
+
+        if (error instanceof AppError) {
+            throw error;
+        }
+
+        throw new AppError('Failed to update Admin profile', 500);
+    }
+
+    if (
+        uploadedPhoto &&
+        previousPhotoPublicId &&
+        previousPhotoPublicId !== uploadedPhoto.public_id
+    ) {
+        try {
+            await cloudinary.uploader.destroy(
+                previousPhotoPublicId,
+                { resource_type: 'image' }
+            );
+        } catch (error) {
+            console.error(
+                'Failed to delete previous Admin profile photo:',
+                error.message
+            );
+        }
+    }
+
+    const updatedAdmin = admin.toObject();
+    delete updatedAdmin.passwordHash;
+
+    return updatedAdmin;
+};
+
+export const changeAdminPasswordService = async (
+    adminId,
+    { currentPassword, newPassword }
+) => {
+    // passwordHash is hidden by default in the Admin model.
+    const admin = await Admin.findById(adminId)
+        .select('+passwordHash');
+
+    if (!admin) {
+        throw new AppError('Admin not found', 404);
+    }
+
+    const isPasswordCorrect = await admin.comparePassword(
+        currentPassword
+    );
+
+    if (!isPasswordCorrect) {
+        throw new AppError('Current password is incorrect', 400);
+    }
+
+    const isSamePassword = await admin.comparePassword(newPassword);
+
+    if (isSamePassword) {
+        throw new AppError(
+            'New password must be different from the current password',
+            400
+        );
+    }
+
+    // The existing Mongoose pre-save hook should hash this password.
+    admin.passwordHash = newPassword;
+
+    await admin.save();
+
+    return {
+        message: 'Password changed successfully'
+    };
 };

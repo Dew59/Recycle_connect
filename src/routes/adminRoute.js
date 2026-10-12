@@ -1,8 +1,8 @@
 import express from 'express';
 import authMiddleware from '../middlewares/authMiddleware.js';
 import authorize from '../middlewares/authorizeMiddleware.js';
-import { approveCollector, getPendingCollectors, getCollectorIdentificationDocument, rejectCollector, registerRecycler, getAllCollectors, getAllHouseholds, getAllPickups, getAllIncentiveTransactions,getIncentiveTransactionById } from '../controllers/adminController.js';
-import { rejectCollectorSchema, adminRegisterRecyclerSchema, getAllCollectorsQuerySchema, getAllIncentiveTransactionsQuerySchema, getIncentiveTransactionByIdParamsSchema } from '../validator/adminValidator.js';
+import { approveCollector, getPendingCollectors, getCollectorIdentificationDocument, rejectCollector, registerRecycler, getAllCollectors, getAllHouseholds, getAllPickups, getAllIncentiveTransactions,getIncentiveTransactionById, getAdminProfile, updateAdminProfile, changeAdminPassword } from '../controllers/adminController.js';
+import { rejectCollectorSchema, adminRegisterRecyclerSchema, getAllCollectorsQuerySchema, getAllIncentiveTransactionsQuerySchema, getIncentiveTransactionByIdParamsSchema, updateAdminProfileSchema, changeAdminPasswordSchema } from '../validator/adminValidator.js';
 import validate from '../middlewares/validate.js';
 import { uploadProfilePhoto } from '../middlewares/uploadMiddleware.js';
 
@@ -87,5 +87,28 @@ router.get(
     getIncentiveTransactionById
 );
 
+router.get(
+    '/profile',
+    authMiddleware,
+    authorize('admin'),
+    getAdminProfile
+);
+
+router.patch(
+    '/profile',
+    authMiddleware,
+    authorize('admin'),
+    uploadProfilePhoto,
+    validate({ body: updateAdminProfileSchema }),
+    updateAdminProfile
+);
+
+router.patch(
+    '/change-password',
+    authMiddleware,
+    authorize('admin'),
+    validate({ body: changeAdminPasswordSchema }),
+    changeAdminPassword
+);
 
 export default router;

@@ -1,6 +1,7 @@
 import asyncHandler from '../utils/asyncHandler.js';
-import { getActiveRecyclersService } from '../services/collectorService.js';
+import { getActiveRecyclersService, getCollectorProfileService, updateCollectorProfileService, changeCollectorPasswordService } from '../services/collectorService.js';
 import { getPendingPickupsService, getAvailablePickupsForCollectorService } from '../services/pickupService.js';
+import AppError from '../utils/AppError.js';
 
 export const getActiveRecyclers = asyncHandler(async (req, res) => {
     const recyclers = await getActiveRecyclersService();
@@ -38,5 +39,59 @@ export const getAvailablePickups = asyncHandler(async (req, res) => {
         success: true,
         message: 'Available pickups retrieved successfully',
         data: result
+    });
+});
+
+
+export const getCollectorProfile = asyncHandler(async (req, res) => {
+    const collector = await getCollectorProfileService(req.user.id);
+
+    res.status(200).json({
+        success: true,
+        message: 'Collector profile retrieved successfully',
+        data: collector
+    });
+});
+
+export const updateCollectorProfile = asyncHandler(async (req, res) => {
+    const body = req.validatedData?.body ?? {};
+
+    const hasProfileFields = Object.keys(body).length > 0;
+    const profilePhoto = req.file;
+
+    if (!hasProfileFields && !profilePhoto) {
+        throw new AppError(
+            'Provide at least one profile field or a profile photo',
+            400
+        );
+    }
+
+    const collector = await updateCollectorProfileService(
+        req.user.id,
+        {
+            ...body,
+            profilePhoto
+        }
+    );
+
+    res.status(200).json({
+        success: true,
+        message: 'Collector profile updated successfully',
+        data: collector
+    });
+});
+
+
+export const changeCollectorPassword = asyncHandler(async (req, res) => {
+    const { currentPassword, newPassword } = req.validatedData.body;
+
+    const result = await changeCollectorPasswordService(
+        req.user.id,
+        { currentPassword, newPassword }
+    );
+
+    res.status(200).json({
+        success: true,
+        message: result.message
     });
 });
