@@ -1,41 +1,64 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
+import { ZodError } from 'zod';
 
 const globalErrorHandler = (err, req, res, next) => {
-    let error = { ...err };
-    error.message = err.message;
+    let statusCode = err.statusCode || 500;
+    let message = err.message || 'Internal Server Error';
+    let errors = [];
 
-    if (err instanceof mongoose.Error.CastError) {
-        error.statusCode = 400;
-        error.message = "Invalid resourse ID"
-    };
+    if (err instanceof ZodError) {
+        statusCode = 400;
+        message = 'Validation failed';
 
-    if (err instanceof mongoose.Error.ValidationError) {
-        error.statusCode = 400;
-        error.message = Object.values(err.errors)
-            .map((e) => e.message)
-            .join(", ");
+        errors = err.issues.map((issue) => ({
+            field: issue.path.join('.'),
+            message: issue.message
+        }));
+    } else if (err instanceof mongoose.Error.CastError) {
+        statusCode = 400;
+        message = 'Invalid resource ID';
+    } else if (err instanceof mongoose.Error.ValidationError) {
+        statusCode = 400;
+        message = 'Validation failed';
+
+        errors = Object.values(err.errors).map((validationError) => ({
+            field: validationError.path,
+            message: validationError.message
+        }));
+    } else if (err.code === 11000) {
+        statusCode = 409;
+
+        const field = err.keyValue
+            ? Object.keys(err.keyValue)[0]
+            : 'Field';
+
+        message = `${field} already exists.`;
     }
 
-    if (err.code === 11000) {
-        const field = Object.keys(err.keyValue)[0];
-        error.statusCode = 409;
-        error.message = `${field} already exists.`
+    const isOperational = err.isOperational === true;
+    const isKnownError =
+        err instanceof ZodError ||
+        err instanceof mongoose.Error.CastError ||
+        err instanceof mongoose.Error.ValidationError ||
+        err.code === 11000;
+
+    if (
+        statusCode >= 500 &&
+        !isOperational &&
+        !isKnownError
+    ) {
+        message = 'Internal Server Error';
+        errors = [];
     }
 
-    if (err.isOperational) {
-        return res.status(error.statusCode).json({
-            status: err.status || "error",
-            message: err.message,
-        });
-    }
-
-    res.status(error.statusCode || 500).json({
+    res.status(statusCode).json({
         success: false,
-        message: error.message || "Internal Server Error",
-        ...(process.env.NODE_ENV === "development" && {
+        message,
+        errors,
+        ...(process.env.NODE_ENV === 'development' && {
             stack: err.stack
         })
-    })
+    });
 };
 
 export default globalErrorHandler;
