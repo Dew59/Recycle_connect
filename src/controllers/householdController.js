@@ -2,6 +2,7 @@ import asyncHandler from '../utils/asyncHandler.js';
 import AppError from '../utils/AppError.js';
 import { getHouseholdProfileService, updateHouseholdProfileService, changeHouseholdPasswordService } from '../services/householdService.js';
 import { getHouseholdRatingHistoryService } from '../services/ratingService.js';
+import { getHouseholdDashboardService } from '../services/householdDashboardService.js';
 
 export const getHouseholdProfile = asyncHandler(async (req, res) => {
     const household = await getHouseholdProfileService(req.user.id);
@@ -60,5 +61,15 @@ export const getHouseholdRatingHistory = asyncHandler(async (req, res) => {
         success: true,
         message: 'Household rating history retrieved successfully',
         data: ratings
+    });
+});
+
+export const getHouseholdDashboard = asyncHandler(async (req, res) => {
+    const dashboard = await getHouseholdDashboardService(req.user.id);
+
+    res.status(200).json({
+        success: true,
+        message: 'Household dashboard retrieved successfully',
+        data: dashboard
     });
 });

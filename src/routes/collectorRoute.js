@@ -1,13 +1,20 @@
 import express from 'express';
 import authMiddleware from '../middlewares/authMiddleware.js';
 import authorize from '../middlewares/authorizeMiddleware.js';
-import { getActiveRecyclers, getPendingPickups, getAvailablePickups, getCollectorProfile,updateCollectorProfile, changeCollectorPassword, getCollectorRatingHistory } from '../controllers/collectorController.js';
+import { getActiveRecyclers, getPendingPickups, getAvailablePickups, getCollectorProfile,updateCollectorProfile, changeCollectorPassword, getCollectorRatingHistory, getCollectorPickups, getCollectorDashboard } from '../controllers/collectorController.js';
 import validate from '../middlewares/validate.js';
 import { getPendingPickupsSchema } from '../validator/pickupValidator.js';
 import { uploadProfilePhoto } from '../middlewares/uploadMiddleware.js';
 import { updateCollectorProfileSchema, changeCollectorPasswordSchema } from '../validator/collectorValidator.js';
 
 const router = express.Router();
+
+router.get(
+    '/dashboard',
+    authMiddleware,
+    authorize('collector'),
+    getCollectorDashboard
+);
 
 router.get(
     '/recyclers',
@@ -68,5 +75,14 @@ router.get(
     getCollectorRatingHistory
 );
 
+router.get(
+    '/pickups/claimed',
+    authMiddleware,
+    authorize('collector'),
+    validate({
+        query: getPendingPickupsSchema
+    }),
+    getCollectorPickups
+);
 
 export default router;

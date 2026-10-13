@@ -1,12 +1,19 @@
 import express from 'express';
 import authMiddleware from '../middlewares/authMiddleware.js';
 import authorize from '../middlewares/authorizeMiddleware.js';
-import { getHouseholdProfile, updateHouseholdProfile, changeHouseholdPassword, getHouseholdRatingHistory } from '../controllers/householdController.js';
+import { getHouseholdProfile, updateHouseholdProfile, changeHouseholdPassword, getHouseholdRatingHistory, getHouseholdDashboard  } from '../controllers/householdController.js';
 import validate from '../middlewares/validate.js';
 import { uploadProfilePhoto } from '../middlewares/uploadMiddleware.js';
 import { updateHouseholdProfileSchema, changeHouseholdPasswordSchema } from '../validator/householdValidator.js';
 
 const router = express.Router();
+
+router.get(
+    '/dashboard',
+    authMiddleware,
+    authorize('household'),
+    getHouseholdDashboard
+);
 
 router.get(
     '/profile',
@@ -38,6 +45,5 @@ router.get(
     authorize('household'),
     getHouseholdRatingHistory
 );
-
 
 export default router;

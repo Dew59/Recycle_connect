@@ -518,3 +518,46 @@ export const changeAdminPasswordService = async (
         message: 'Password changed successfully'
     };
 };
+
+export const getAllAdminsService = async ({ cursor }) => {
+    const limit = 10;
+    const query = {};
+
+    if (cursor) {
+        query._id = { $lt: cursor };
+    }
+
+    const admins = await Admin.find(query)
+        .select(
+            'fullName email phone profilePhoto isActive createdAt updatedAt'
+        )
+        .sort({ _id: -1 })
+        .limit(limit + 1);
+
+    const hasNextPage = admins.length > limit;
+
+    if (hasNextPage) {
+        admins.pop();
+    }
+
+    const nextCursor = hasNextPage
+        ? admins[admins.length - 1]._id
+        : null;
+
+    return {
+        admins,
+        nextCursor
+    };
+};
+
+export const getAdminByIdService = async (adminId) => {
+    const admin = await Admin.findById(adminId).select(
+        'fullName email phone profilePhoto isActive createdAt updatedAt'
+    );
+
+    if (!admin) {
+        throw new AppError('Admin not found', 404);
+    }
+
+    return admin;
+};

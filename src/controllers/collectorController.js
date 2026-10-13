@@ -1,8 +1,9 @@
 import asyncHandler from '../utils/asyncHandler.js';
 import { getActiveRecyclersService, getCollectorProfileService, updateCollectorProfileService, changeCollectorPasswordService } from '../services/collectorService.js';
-import { getPendingPickupsService, getAvailablePickupsForCollectorService } from '../services/pickupService.js';
+import { getPendingPickupsService, getAvailablePickupsForCollectorService, getCollectorPickupsService } from '../services/pickupService.js';
 import AppError from '../utils/AppError.js';
 import { getCollectorRatingHistoryService } from '../services/ratingService.js';
+import { getCollectorDashboardService } from '../services/collectorDashboardService.js';
 
 export const getActiveRecyclers = asyncHandler(async (req, res) => {
     const recyclers = await getActiveRecyclersService();
@@ -43,6 +44,20 @@ export const getAvailablePickups = asyncHandler(async (req, res) => {
     });
 });
 
+export const getCollectorPickups = asyncHandler(async (req, res) => {
+    const { cursor } = req.validatedData.query;
+
+    const result = await getCollectorPickupsService({
+        collectorId: req.user.id,
+        cursor
+    });
+
+    res.status(200).json({
+        success: true,
+        message: 'Claimed pickups retrieved successfully',
+        data: result
+    });
+});
 
 export const getCollectorProfile = asyncHandler(async (req, res) => {
     const collector = await getCollectorProfileService(req.user.id);
@@ -104,5 +119,15 @@ export const getCollectorRatingHistory = asyncHandler(async (req, res) => {
         success: true,
         message: 'Collector rating history retrieved successfully',
         data: ratings
+    });
+});
+
+export const getCollectorDashboard = asyncHandler(async (req, res) => {
+    const dashboard = await getCollectorDashboardService(req.user.id);
+
+    res.status(200).json({
+        success: true,
+        message: 'Collector dashboard retrieved successfully',
+        data: dashboard
     });
 });
