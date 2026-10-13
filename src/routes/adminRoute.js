@@ -1,13 +1,20 @@
 import express from 'express';
 import authMiddleware from '../middlewares/authMiddleware.js';
 import authorize from '../middlewares/authorizeMiddleware.js';
-import { approveCollector, getPendingCollectors, getCollectorIdentificationDocument, rejectCollector, registerRecycler, getAllCollectors, getAllHouseholds, getAllPickups, getAllIncentiveTransactions,getIncentiveTransactionById, getAdminProfile, updateAdminProfile, changeAdminPassword, getPickupRatingsForAdmin } from '../controllers/adminController.js';
-import { rejectCollectorSchema, adminRegisterRecyclerSchema, getAllCollectorsQuerySchema, getAllIncentiveTransactionsQuerySchema, getIncentiveTransactionByIdParamsSchema, updateAdminProfileSchema, changeAdminPasswordSchema } from '../validator/adminValidator.js';
+import { approveCollector, getPendingCollectors, getCollectorIdentificationDocument, rejectCollector, registerRecycler, getAllCollectors, getAllHouseholds, getAllPickups, getAllIncentiveTransactions,getIncentiveTransactionById, getAdminProfile, updateAdminProfile, changeAdminPassword, getPickupRatingsForAdmin, getAdminDashboard, getAllAdmins, getAdminById } from '../controllers/adminController.js';
+import { rejectCollectorSchema, adminRegisterRecyclerSchema, getAllCollectorsQuerySchema, getAllIncentiveTransactionsQuerySchema, getIncentiveTransactionByIdParamsSchema, updateAdminProfileSchema, changeAdminPasswordSchema, getAllAdminsQuerySchema,getAdminByIdParamsSchema } from '../validator/adminValidator.js';
 import validate from '../middlewares/validate.js';
 import { uploadProfilePhoto } from '../middlewares/uploadMiddleware.js';
 import { getPickupDetailsSchema } from '../validator/pickupValidator.js';
 
 const router = express.Router();
+
+router.get(
+    '/dashboard',
+    authMiddleware,
+    authorize('admin'),
+    getAdminDashboard
+);
 
 router.get(
     '/collectors/pending',
@@ -119,5 +126,20 @@ router.get(
     getPickupRatingsForAdmin
 );
 
+router.get(
+    '/admins',
+    authMiddleware,
+    authorize('admin'),
+    validate({ query: getAllAdminsQuerySchema }),
+    getAllAdmins
+);
+
+router.get(
+    '/admins/:adminId',
+    authMiddleware,
+    authorize('admin'),
+    validate({ params: getAdminByIdParamsSchema }),
+    getAdminById
+);
 
 export default router;

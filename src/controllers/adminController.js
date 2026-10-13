@@ -1,7 +1,8 @@
 import asyncHandler from '../utils/asyncHandler.js';
 import AppError from '../utils/AppError.js';
-import { approveCollectorService, getPendingCollectorsService, getCollectorIdentificationDocumentService, rejectCollectorService, registerRecyclerService, getAllCollectorsService, getAllHouseholdsService, getAllPickupsService, getAllIncentiveTransactionsService, getIncentiveTransactionByIdService, getAdminProfileService, updateAdminProfileService, changeAdminPasswordService } from '../services/adminService.js';
+import { approveCollectorService, getPendingCollectorsService, getCollectorIdentificationDocumentService, rejectCollectorService, registerRecyclerService, getAllCollectorsService, getAllHouseholdsService, getAllPickupsService, getAllIncentiveTransactionsService, getIncentiveTransactionByIdService, getAdminProfileService, updateAdminProfileService, changeAdminPasswordService, getAllAdminsService, getAdminByIdService } from '../services/adminService.js';
 import { getPickupRatingsForAdminService } from '../services/ratingService.js';
+import { getAdminDashboardService } from '../services/adminDashboardService.js';
 
 export const getPendingCollectors = asyncHandler(async (req, res) => {
     const collectors = await getPendingCollectorsService();
@@ -266,5 +267,43 @@ export const getPickupRatingsForAdmin = asyncHandler(async (req, res) => {
         success: true,
         message: 'Pickup ratings retrieved successfully',
         data: ratings
+    });
+});
+
+export const getAdminDashboard = asyncHandler(async (req, res) => {
+    const dashboard = await getAdminDashboardService();
+
+    res.status(200).json({
+        success: true,
+        message: 'Admin dashboard retrieved successfully',
+        data: dashboard
+    });
+});
+
+export const getAllAdmins = asyncHandler(async (req, res) => {
+    const { cursor } = req.validatedData.query;
+
+    const result = await getAllAdminsService({ cursor });
+
+    res.status(200).json({
+        success: true,
+        message: 'Admins retrieved successfully',
+        data: result.admins,
+        pagination: {
+            nextCursor: result.nextCursor,
+            limit: 10
+        }
+    });
+});
+
+export const getAdminById = asyncHandler(async (req, res) => {
+    const { adminId } = req.validatedData.params;
+
+    const admin = await getAdminByIdService(adminId);
+
+    res.status(200).json({
+        success: true,
+        message: 'Admin retrieved successfully',
+        data: admin
     });
 });

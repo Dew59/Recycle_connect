@@ -6,6 +6,53 @@ import AppError from '../utils/AppError.js';
 import uploadToCloudinary from '../utils/cloudinaryUpload.js';
 import { sendPickupCancellationEmail } from './emailService.js';
 import IncentiveTransaction from '../models/incentiveTransactionModel.js';
+import { DateTime } from 'luxon';
+
+
+const getScheduledPickupDateTime = ({
+    date,
+    time,
+    timezone
+}) => {
+    const scheduledDateTime = DateTime.fromISO(
+        `${date}T${time}`,
+        { zone: timezone }
+    );
+
+    if (!scheduledDateTime.isValid) {
+        throw new AppError(
+            'Invalid pickup date, time, or timezone',
+            400
+        );
+    }
+
+    // Reject local times that Luxon had to normalize.
+    const [year, month, day] = date.split('-').map(Number);
+    const [hour, minute] = time.split(':').map(Number);
+
+    if (
+        scheduledDateTime.year !== year ||
+        scheduledDateTime.month !== month ||
+        scheduledDateTime.day !== day ||
+        scheduledDateTime.hour !== hour ||
+        scheduledDateTime.minute !== minute
+    ) {
+        throw new AppError(
+            'This local time does not exist in the selected timezone',
+            400
+        );
+    }
+
+    // Reject times that occur twice during a clock change.
+    if (scheduledDateTime.getPossibleOffsets().length > 1) {
+        throw new AppError(
+            'This local time is ambiguous in the selected timezone. Choose another time',
+            400
+        );
+    }
+
+    return scheduledDateTime;
+};
 
 export const createPickupService = async ({
     householdId,
@@ -14,8 +61,23 @@ export const createPickupService = async ({
     note,
     date,
     time,
+    timezone,
     pickupPhoto
 }) => {
+
+    const scheduledDateTime = getScheduledPickupDateTime({
+        date,
+        time,
+        timezone
+    });
+
+    if (scheduledDateTime.toMillis() <= Date.now()) {
+        throw new AppError(
+            'Pickup date and time must be in the future',
+            400
+        );
+    }
+
     const materialCount = await Material.countDocuments({
         _id: { $in: materials }
     });
@@ -57,6 +119,8 @@ export const createPickupService = async ({
         image,
         date,
         time,
+        timezone,
+        scheduledAt: scheduledDateTime.toJSDate(),
         status: 'PENDING'
     });
 
@@ -95,7 +159,7 @@ export const getHouseholdPickupsService = async ({
             select: 'name description'
         })
         .select(
-            'materials location note image date time status collector createdAt updatedAt'
+            'materials location note image date time timezone scheduledAt status collector createdAt updatedAt'
         )
         .sort({ _id: -1 })
         .limit(limit + 1);
@@ -198,7 +262,63 @@ export const getAvailablePickupsForCollectorService = async ({
             select: 'fullName phone'
         })
         .select(
-            'household materials location note image date time status createdAt updatedAt'
+            'household materials location note image date time timezone scheduledAt status createdAt updatedAt'
+        )
+        .sort({ _id: -1 })
+        .limit(limit + 1);
+
+    const hasNextPage = pickups.length > limit;
+
+    if (hasNextPage) {
+        pickups.pop();
+    }
+
+    const nextCursor = hasNextPage
+        ? pickups[pickups.length - 1]._id
+        : null;
+
+    return {
+        pickups,
+        nextCursor
+    };
+};
+
+
+export const getCollectorPickupsService = async ({
+    collectorId,
+    cursor
+}) => {
+    const limit = 10;
+
+    const query = {
+        collector: collectorId,
+        status: {
+            $in: [
+                'CLAIMED',
+                'COLLECTED',
+                'CONFIRMATION_PENDING',
+                'COMPLETED'
+            ]
+        }
+    };
+
+    if (cursor) {
+        query._id = {
+            $lt: cursor
+        };
+    }
+
+    const pickups = await Pickup.find(query)
+        .populate({
+            path: 'materials',
+            select: 'name description'
+        })
+        .populate({
+            path: 'household',
+            select: 'fullName phone'
+        })
+        .select(
+            'household materials location note image date time timezone scheduledAt status collector createdAt updatedAt'
         )
         .sort({ _id: -1 })
         .limit(limit + 1);
@@ -272,8 +392,6 @@ export const getPickupDetailsService = async ({
 
         return pickupData;
     }
-
-    // Household can only view their own pickup.
 
     // Household can only view their own pickup.
     if (userRole === 'household') {

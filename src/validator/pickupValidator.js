@@ -74,7 +74,23 @@ export const createPickupSchema = z
             .regex(
                 /^([01]\d|2[0-3]):[0-5]\d$/,
                 'Pickup time must be in 24-hour format (HH:mm), e.g. 14:30'
-            )
+            ),
+
+        timezone: z
+            .string()
+            .trim()
+            .min(1, 'Timezone is required')
+            .refine((value) => {
+                try {
+                    new Intl.DateTimeFormat('en-US', {
+                        timeZone: value
+                    });
+
+                    return true;
+                } catch {
+                    return false;
+                }
+            }, 'Timezone must be a valid IANA timezone, e.g. Africa/Lagos'),
 
     })
     .transform((data, ctx) => {

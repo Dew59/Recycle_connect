@@ -91,3 +91,18 @@ export const changeAdminPasswordSchema = z.object({
     newPassword: z.string()
         .min(8, 'New password must be at least 8 characters long')
 }).strict();
+
+export const getAllAdminsQuerySchema = z.object({
+    cursor: z
+        .string()
+        .trim()
+        .regex(/^[0-9a-fA-F]{24}$/, 'Invalid pagination cursor')
+        .optional()
+});
+
+export const getAdminByIdParamsSchema = z.object({
+    adminId: z
+        .string()
+        .trim()
+        .regex(/^[0-9a-fA-F]{24}$/, 'Invalid Admin ID')
+});

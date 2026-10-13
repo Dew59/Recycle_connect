@@ -69,6 +69,17 @@ const pickupSchema = new mongoose.Schema(
             trim: true
         },
 
+        timezone: {
+            type: String,
+            required: true,
+            trim: true
+        },
+
+        scheduledAt: {
+            type: Date,
+            required: true
+        },
+
         status: {
             type: String,
             enum: [
